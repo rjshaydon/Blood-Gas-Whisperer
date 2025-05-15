@@ -414,7 +414,7 @@
   /* 1) Use the <body> as a 3-column grid: tabs in col 1, main area in cols 2–3 */
   body {
     display: grid !important;
-    grid-template-columns: 98px 2fr 3fr;
+    grid-template-columns: 50px 2fr 3fr;
     grid-template-rows: 100vh;
     margin: 0;
     padding: 0;
@@ -427,7 +427,7 @@
     grid-column: 1;
     grid-row: 1;
     /* you can leave width:98px here as a reminder, but the track fixes it */
-    width: 98px;
+    /* width: 98px; */
     display: flex;           
     flex-direction: column;
     align-items: flex-end;    /* ← this makes every .tab (and the pseudo-element) hug the right edge */
