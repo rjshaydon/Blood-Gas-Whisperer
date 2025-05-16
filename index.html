@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Haydon Method Blood Gas App</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+
+<body>
+  <div class="title-bar" ontouchmove="event.preventDefault()">
+    <div class="title-content">
+      <img src="icon.png" alt="App Icon" class="title-icon">
+      <div class="title-text">
+        <span>The Blood Gas Whisperer</span>
+        <span class="title-subtitle">by Dr Richard Haydon FACEM</span>
+      </div>
+    </div>
+    <button id="mode-switch-btn">Switch to Advanced</button>
+  </div>
+  <div class="tabs" ontouchmove="event.preventDefault()">
+    <div class="tab active" onclick="showStep(1, true)"><span class="tab-label">Step 1</span></div>
+    <div class="tab" onclick="showStep(2, true)"><span class="tab-label">Step 2</span></div>
+    <div class="tab" onclick="showStep(3, true)"><span class="tab-label">Step 3</span></div>
+    <div class="tab" onclick="showStep(4, true)"><span class="tab-label">Step 4</span></div>
+    <div class="tab" onclick="showStep(5, true)"><span class="tab-label">ABG</span></div>
+  </div>
+  <div class="main">
+    <div class="content">
+      <div class="step" id="step1">
+        <div class="row-align">
+          <div class="input-group">
+            <label for="na">Na⁺</label><input type="text" inputmode="decimal" id="na" step="1" value="135" oninput="update()" class="value-field">
+            <label for="cl">Cl⁻</label><input type="text" inputmode="decimal" id="cl" step="1" value="98" oninput="update()" class="value-field">
+          </div>
+          <div class="interpretation" id="interp1"></div>
+        </div>
+      </div>
+      <div class="step" id="step2">
+        <div class="row-align">
+          <div class="input-group">
+            <label for="hco3">HCO₃⁻</label><input type="text" inputmode="decimal" id="hco3" step="0.1" value="24" oninput="update()" class="value-field">
+          </div>
+          <div class="interpretation" id="interp2"></div>
+        </div>
+      </div>
+      <div class="step" id="step3">
+        <div class="row-align">
+          <div class="input-group">
+            <label for="co2">CO₂</label><input type="text" inputmode="decimal" id="co2" step="0.1" value="40" oninput="update()" class="value-field">
+          </div>
+          <div class="interpretation" id="interp3"></div>
+        </div>
+      </div>
+      <div class="step" id="step4">
+        <div class="row-align">
+          <div class="input-group">
+            <label for="k">K⁺</label>
+            <input type="text" inputmode="decimal" id="k" step="0.1" value="4.0" oninput="update()" class="value-field">
+            <label for="glucose">Glucose</label>
+            <input type="text" inputmode="decimal" id="glucose" step="0.1" value="5.5" oninput="update()" class="value-field">
+            <label for="lactate">Lactate</label>
+            <input type="text" inputmode="decimal" id="lactate" step="0.1" value="1.0" oninput="update()" class="value-field">
+            <label for="ph">pH</label>
+            <input type="text" id="ph" value="" readonly>
+          </div>
+          <div class="interpretation" id="interp4" style="align-self: flex-start; margin-top: 0;"></div>
+        </div>
+      </div>
+      <!-- New Step 5 -->
+      <div class="step" id="step5" style="flex-direction: column; align-items: flex-start;">
+        <div style="font-weight: bold; margin-top: 2rem; margin-bottom: 0.75rem; white-space: nowrap; ">
+          <span>O₂ and Hb analysis <em>– ABG only</em></span>
+          <input type="checkbox" id="toggleO2hb" style="margin-left: 0.5rem; vertical-align: middle;">
+        </div>
+        <div class="row-align" style="width: 100%; margin-bottom: 0.5rem;"> <!-- Added margin-bottom for spacing -->
+          <div class="input-group">
+            <label for="fio2" class="o2hb-field">FiO₂</label>
+            <input type="text" inputmode="decimal" id="fio2" step="1" value="21" oninput="update()" class="o2hb-field value-field">
+            <label for="pao2" class="o2hb-field">PaO₂</label>
+            <input type="text" inputmode="decimal" id="pao2" value="100" oninput="update()" class="o2hb-field value-field">
+          </div>
+          <div class="interpretation o2hb-field" id="interpO2hb">
+          </div>
+        </div>
+        <!-- New Hb/F-Hb section MOVED HERE and margin-top removed -->
+        <div class="row-align" style="width: 100%;">
+          <div class="input-group">
+            <label for="hb" class="o2hb-field">Hb</label>
+            <input type="text" inputmode="decimal" id="hb" value="140" oninput="update()" class="o2hb-field value-field">
+
+            <label for="fo2hb" class="o2hb-field">FO₂Hb</label>
+            <input type="text" inputmode="decimal" id="fo2hb" value="97.0" step="0.1" oninput="update()" class="o2hb-field value-field">
+
+            <label for="fmethb" class="o2hb-field">FMetHb</label>
+            <input type="text" inputmode="decimal" id="fmethb" value="0.0" step="0.1" oninput="update()" class="o2hb-field value-field">
+
+            <label for="fcohb" class="o2hb-field">FCOHb</label>
+            <input type="text" inputmode="decimal" id="fcohb" value="1.0" step="0.1" oninput="update()" class="o2hb-field value-field">
+
+            <label for="fhhb" class="o2hb-field">FHHb</label>
+            <input type="text" inputmode="decimal" id="fhhb" value="2.0" step="0.1" oninput="update()" class="o2hb-field value-field">
+          </div>
+          <div class="interpretation o2hb-field" id="interpHbFhb"><!-- Removed style="align-self: stretch;" -->
+            <!-- Interpretation for Hb and F-Hb values will go here -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="summary" id="summary">
+      <div class="summary-content">
+        <div class="summary-text" id="summary-text"></div>
+        <div class="recommendations" id="recommendations-container">
+          <div class="recommendations-title" id="recommendations-title">Recommendations:</div>
+          <div id="recommendations-text"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+ </body>
+</html>
