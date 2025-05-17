@@ -253,8 +253,11 @@ input[type="text"]:focus {
   }
   /* When .summary is <50% viewport height, remove scrollbars */
   .summary:not(.scrolled) { overflow-y: hidden; }
-
-  
+  .row-align {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    gap: 0.25rem;
+  }
   .interpretation {
     width: 100%;
     min-width: 0;
@@ -266,7 +269,11 @@ input[type="text"]:focus {
 
 /* MOBILE: stack interpretation under fields */
 @media (max-width: 700px), (orientation: portrait) {
-  
+  .row-align {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    gap: 0.25rem;
+  }
   .interpretation {
     width: 100%;
     min-width: 0;
@@ -395,20 +402,65 @@ input[type="text"]:focus {
     overflow-x: hidden;
   }
 
-  
+  .row-align {
+    grid-template-columns: 1fr;
+  }
 }
 
-/* --- Alice patch: keep interpretation boxes side-by-side in portrait --- */
-@media (orientation: portrait), (max-width: 950px) {
+
+/* --- Compact mobile layout for iPhone portrait (≤ 430px) --- */
+@media (max-width: 430px) {
+  .content {
+    padding: 0.5rem 0.2rem 0.5rem 0.2rem;
+  }
   .row-align {
-    grid-template-columns: max-content 16px 240px;
-    gap: 0.7rem;
+    grid-template-columns: 65px 10px 140px;
+    gap: 0.1rem;
   }
   .interpretation {
-    width: 240px;
-    min-width: 240px;
-    max-width: 240px;
-    align-self: center;
-    margin-top: 0;
+    width: 140px;
+    min-width: 80px;
+    max-width: 140px;
+    font-size: 0.91rem;
+    margin: 0 0 0 0.4rem;
+    padding: 0.3rem 0.4rem;
+  }
+  .input-group label {
+    font-size: 0.93rem;
+    padding-right: 0.1rem;
+  }
+  input[type="text"] {
+    width: 44px;
+    font-size: 0.98rem;
+    padding: 0.33rem;
+  }
+}
+
+
+/* --- Super-compact grid for very narrow portrait screens --- */
+@media (max-width: 430px) {
+  .content {
+    padding: 0.5rem 0.2rem 0.5rem 0.2rem;
+  }
+  .row-align {
+    grid-template-columns: 60px 7px 110px;
+    gap: 0.09rem;
+  }
+  .interpretation {
+    width: 110px;
+    min-width: 65px;
+    max-width: 110px;
+    font-size: 0.9rem;
+    margin: 0 0 0 0.2rem;
+    padding: 0.28rem 0.26rem;
+  }
+  .input-group label {
+    font-size: 0.9rem;
+    padding-right: 0.1rem;
+  }
+  input[type="text"] {
+    width: 38px;
+    font-size: 0.95rem;
+    padding: 0.23rem;
   }
 }
