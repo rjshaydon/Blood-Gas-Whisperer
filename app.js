@@ -105,7 +105,172 @@ function showStep(step, focusFirst = false) {
   }
 
 }
+// Complete summary box management functions
+// Add these functions to your app.js file
 
+function repositionSummary() {
+  const summaryEl = document.getElementById('summary');
+  const mainEl = document.querySelector('.main');
+  
+  // Remove summary from its current position if it exists
+  if (summaryEl && summaryEl.parentNode) {
+    summaryEl.remove();
+  }
+  
+  // Always append summary to .main (outside the scrollable .content)
+  if (mainEl && summaryEl) {
+    mainEl.appendChild(summaryEl);
+  }
+  
+  // Update summary height and scrollable behavior
+  updateSummaryHeight();
+}
+
+function updateSummaryHeight() {
+  const summaryEl = document.getElementById('summary');
+  const contentEl = document.querySelector('.content');
+  
+  // ----- 1. Decide which layout we’re in -----
+  const isPortrait = window.matchMedia(
+      '(orientation: portrait), (max-width: 950px)'
+  ).matches;
+
+  if (!summaryEl || summaryEl.style.display === 'none') {
+    // If summary is hidden, reset content padding
+    if (contentEl) {
+      contentEl.style.paddingBottom = '20px';
+      contentEl.style.overflowY = 'visible';
+      contentEl.style.maxHeight = 'none';
+    }
+    return;
+  }
+  
+  /* ----------------------------------------------------------------
+     DESKTOP / LANDSCAPE – let the card size itself naturally and
+     stop here so no height is forced on the grid row.
+  ---------------------------------------------------------------- */
+  if (!isPortrait) {
+      summaryEl.style.height     = 'auto';
+      summaryEl.style.maxHeight  = 'none';
+      summaryEl.style.overflowY  = 'auto';   // scroll if necessary
+
+      // Make sure .content isn’t artificially shortened from a
+      // previous portrait run
+      contentEl.style.paddingBottom = '20px';
+      contentEl.style.overflowY     = 'auto';
+      contentEl.style.maxHeight     = 'none';
+      return;
+  }
+
+  /* ----------------------------------------------------------------
+     PORTRAIT – keep the existing behaviour (cap height at 50 % and
+     give .content extra padding so it can still scroll).
+  ---------------------------------------------------------------- */
+  const viewportHeight   = window.innerHeight;
+  const maxSummaryHeight = Math.floor(viewportHeight * 0.5); // 50 %
+  
+  // Get the natural height of the summary content
+  summaryEl.style.height = 'auto';
+  summaryEl.style.maxHeight = 'none';
+  const naturalHeight = summaryEl.scrollHeight;
+  
+  if (naturalHeight > maxSummaryHeight) {
+    // Content is too tall - make it scrollable at 50% height
+    summaryEl.style.height = maxSummaryHeight + 'px';
+    summaryEl.style.maxHeight = maxSummaryHeight + 'px';
+    summaryEl.style.overflowY = 'auto';
+  } else {
+    // Content fits - use natural height
+    summaryEl.style.height = naturalHeight + 'px';
+    summaryEl.style.maxHeight = 'none';
+    summaryEl.style.overflowY = 'visible';
+  }
+  
+  // Update main content scrolling
+  updateMainContentScroll();
+}
+
+function updateMainContentScroll() {
+  const summaryEl = document.getElementById('summary');
+  const contentEl = document.querySelector('.content');
+
+  // bail out if summary is hidden
+  if (!summaryEl || summaryEl.style.display === 'none') return;
+
+  // only “reserve” space in portrait mode
+  const isPortrait = window.matchMedia('(orientation: portrait), (max-width: 950px)').matches;
+  if (!isPortrait) {
+    // reset any inline overrides from a previous run
+    contentEl.style.paddingBottom = '';
+    contentEl.style.overflowY    = '';
+    contentEl.style.maxHeight    = '';
+    return;
+  }
+
+  const summaryHeight = summaryEl.offsetHeight;
+  const viewportHeight = window.innerHeight;
+  const availableHeight = viewportHeight - summaryHeight;
+  
+  // Add padding equal to summary height plus some extra space
+  const paddingBottom = summaryHeight + 20;
+  contentEl.style.paddingBottom = paddingBottom + 'px';
+  
+  // Make content scrollable if it would be obscured
+  if (contentEl.scrollHeight > availableHeight) {
+    contentEl.style.overflowY = 'auto';
+    contentEl.style.maxHeight = availableHeight + 'px';
+  } else {
+    contentEl.style.overflowY = 'visible';
+    contentEl.style.maxHeight = 'none';
+  }
+}
+
+function handleResize() {
+  // Debounce resize events
+  clearTimeout(window.resizeTimeout);
+  window.resizeTimeout = setTimeout(() => {
+    updateSummaryHeight();
+  }, 100);
+}
+
+// Enhanced startup functions
+function startupSummaryManagement() {
+  // Initial positioning
+  repositionSummary();
+  
+  // Add resize listener
+  window.addEventListener('resize', handleResize);
+  
+  // Setup mutation observer to watch for summary content changes
+  const summaryTextEl = document.getElementById('summary-text');
+  if (summaryTextEl && window.MutationObserver) {
+    const observer = new MutationObserver(() => {
+      updateSummaryHeight();
+    });
+    
+    observer.observe(summaryTextEl, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+  }
+}
+
+// Update your existing DOMContentLoaded event listener to include this:
+document.addEventListener('DOMContentLoaded', function() {
+  startupModeSwitch();
+  startupTabNavigation();
+  startupTabsTouchBlock();
+  startupSummaryTouchBlock();
+  startupSummaryManagement(); // Add this line
+  if (typeof startupValueFieldRestrictions === 'function') {
+    startupValueFieldRestrictions();
+  }
+});
+
+// Also make sure to call updateSummaryHeight() in your update() function
+// Add this line at the end of your update() function:
+// updateSummaryHeight();
 // Globals
 window.currentStep = 1;
 window.maxStep = 1;
@@ -737,7 +902,8 @@ if (shouldShowSummary) {
   document.getElementById('recommendations-container').style.display = recommendationsHtml ? '' : 'none';
   
   // Call repositionSummary to ensure proper placement
-  repositionSummary();
+  updateSummaryHeight();
+  initDynamicPadding()
 }
 
 function initTabNavigation() {
@@ -760,12 +926,98 @@ function initTabNavigation() {
 }
 function repositionSummary() {
   const summaryEl = document.getElementById('summary');
-  // Remove summary from its current position
-  summaryEl.remove();
-  // Always append summary to .main (outside the scrollable .content)
   const mainEl = document.querySelector('.main');
-  mainEl.appendChild(summaryEl);
+  
+  // Remove summary from its current position if it exists
+  if (summaryEl && summaryEl.parentNode) {
+    summaryEl.remove();
+  }
+  
+  // Always append summary to .main (outside the scrollable .content)
+  if (mainEl && summaryEl) {
+    mainEl.appendChild(summaryEl);
+  }
+  
+  // Update summary height and scrollable behavior
+  updateSummaryHeight();
 }
+
+
+
+function updateMainContentScroll() {
+  const summaryEl = document.getElementById('summary');
+  const contentEl = document.querySelector('.content');
+  
+  if (!summaryEl || !contentEl || summaryEl.style.display === 'none') {
+    return;
+  }
+  
+  const summaryHeight = summaryEl.offsetHeight;
+  const viewportHeight = window.innerHeight;
+  const availableHeight = viewportHeight - summaryHeight;
+  
+  // Add padding equal to summary height plus some extra space
+  const paddingBottom = summaryHeight + 20;
+  contentEl.style.paddingBottom = paddingBottom + 'px';
+  
+  // Make content scrollable if it would be obscured
+  if (contentEl.scrollHeight > availableHeight) {
+    contentEl.style.overflowY = 'auto';
+    contentEl.style.maxHeight = availableHeight + 'px';
+  } else {
+    contentEl.style.overflowY = 'visible';
+    contentEl.style.maxHeight = 'none';
+  }
+}
+
+function handleResize() {
+  // Debounce resize events
+  clearTimeout(window.resizeTimeout);
+  window.resizeTimeout = setTimeout(() => {
+    updateSummaryHeight();
+  }, 100);
+}
+
+// Enhanced startup functions
+function startupSummaryManagement() {
+  // Initial positioning
+  repositionSummary();
+  
+  // Add resize listener
+  window.addEventListener('resize', handleResize);
+  
+  // Setup mutation observer to watch for summary content changes
+  const summaryTextEl = document.getElementById('summary-text');
+  if (summaryTextEl && window.MutationObserver) {
+    const observer = new MutationObserver(() => {
+      updateSummaryHeight();
+    });
+    
+    observer.observe(summaryTextEl, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+  }
+}
+
+// Update your existing DOMContentLoaded event listener to include this:
+document.addEventListener('DOMContentLoaded', function() {
+  startupModeSwitch();
+  startupTabNavigation();
+  startupTabsTouchBlock();
+  startupSummaryTouchBlock();
+  startupSummaryManagement(); // Add this line
+  if (typeof startupValueFieldRestrictions === 'function') {
+    startupValueFieldRestrictions();
+  }
+});
+
+// Also make sure to call updateSummaryHeight() in your update() function
+// Add this line at the end of your update() function:
+// updateSummaryHeight();
+
+
 function startupTabNavigation() {
   showStep(1, true);
   update();
@@ -940,5 +1192,92 @@ document.addEventListener('DOMContentLoaded', function() {
   if (typeof startupValueFieldRestrictions === 'function') {
     startupValueFieldRestrictions();
   }
+  initDynamicPadding()
 });
 
+// Function to adjust content padding based on summary height
+function adjustContentPadding() {
+  const summary = document.getElementById('summary');
+  const content = document.querySelector('.content');
+  
+  // Only adjust padding in portrait/narrow mode
+  const isPortraitMode = window.matchMedia('(orientation: portrait), (max-width: 950px)').matches;
+  
+  if (!isPortraitMode) {
+    // Reset padding for desktop mode
+    content.style.paddingBottom = '';
+    return;
+  }
+  
+  if (summary && summary.classList.contains('active')) {
+    // Get the actual height of the summary box
+    const summaryHeight = summary.offsetHeight;
+    
+    // Add extra padding (2rem = 32px) for comfortable spacing
+    const extraPadding = 32;
+    const totalPadding = summaryHeight + extraPadding;
+    
+    // Apply the dynamic padding
+    content.style.paddingBottom = `${totalPadding}px`;
+  } else {
+    // Summary is not active, use minimal padding
+    content.style.paddingBottom = '2rem';
+  }
+}
+
+// Function to observe summary content changes and adjust padding
+function setupSummaryObserver() {
+  const summary = document.getElementById('summary');
+  const summaryContent = document.querySelector('.summary-content');
+  
+  if (!summary || !summaryContent) return;
+  
+  // Use ResizeObserver to watch for summary size changes
+  if (window.ResizeObserver) {
+    const resizeObserver = new ResizeObserver(() => {
+      // Small delay to ensure DOM has updated
+      setTimeout(adjustContentPadding, 50);
+    });
+    
+    resizeObserver.observe(summary);
+    resizeObserver.observe(summaryContent);
+  }
+  
+  // Also use MutationObserver to watch for content changes
+  const mutationObserver = new MutationObserver(() => {
+    setTimeout(adjustContentPadding, 50);
+  });
+  
+  mutationObserver.observe(summaryContent, {
+    childList: true,
+    subtree: true,
+    characterData: true
+  });
+}
+
+// Function to handle window resize
+function handleResize() {
+  adjustContentPadding();
+}
+
+// Initialize the dynamic padding system
+function initDynamicPadding() {
+  // Set up observers
+  setupSummaryObserver();
+  
+  // Listen for window resize
+  window.addEventListener('resize', handleResize);
+  
+  // Listen for orientation change
+  window.addEventListener('orientationchange', () => {
+    setTimeout(adjustContentPadding, 100);
+  });
+  
+  // Initial adjustment
+  setTimeout(adjustContentPadding, 100);
+}
+
+// Call this function when your app initializes
+// You should call initDynamicPadding() after your DOM is ready
+// For example, add this to your existing initialization code:
+// initDynamicPadding();
